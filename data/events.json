@@ -1,0 +1,66 @@
+{
+  "EVT001": {
+    "event_id": "EVT001",
+    "event_name": "Python Workshop",
+    "date": "2026-12-05",
+    "venue": "Lab 2",
+    "participants": [
+      "S101",
+      "S102",
+      "S103"
+    ],
+    "preferred_window": "09:00-13:00",
+    "description": "Hands-on Python programming",
+    "start_time": null,
+    "end_time": null,
+    "status": "Unassigned"
+  },
+  "EVT002": {
+    "event_id": "EVT002",
+    "event_name": "Web Development Seminar",
+    "date": "2026-12-05",
+    "venue": "Hall 1",
+    "participants": [
+      "S102",
+      "S104",
+      "S105"
+    ],
+    "preferred_window": "09:00-14:00",
+    "description": "Modern frontend & backend architectures",
+    "start_time": null,
+    "end_time": null,
+    "status": "Unassigned"
+  },
+  "EVT003": {
+    "event_id": "EVT003",
+    "event_name": "AI and ML Talk",
+    "date": "2026-12-05",
+    "venue": "Lab 2",
+    "participants": [
+      "S103",
+      "S106",
+      "S107"
+    ],
+    "preferred_window": "10:00-15:00",
+    "description": "Keynote on machine intelligence",
+    "start_time": null,
+    "end_time": null,
+    "status": "Unassigned"
+  },
+  "EVT004": {
+    "event_id": "EVT004",
+    "event_name": "Hackathon",
+    "date": "2026-12-05",
+    "venue": "Lab 3",
+    "participants": [
+      "S108",
+      "S109",
+      "S110"
+    ],
+    "preferred_window": "09:00-18:00",
+    "description": "24-hour coding challenge",
+    "start_time": null,
+    "end_time": null,
+    "status": "Unassigned"
+  }
+}

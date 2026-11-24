@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart College Event Planner</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="wrap">
+    <div class="header-row">
+      <div>
+        <h1 class="site-title">Smart College Event Planner</h1>
+        <p class="site-sub">Conflict detection · Graph-coloring scheduler · Venue checks · Analytics</p>
+        <div class="header-tags">
+          <span class="tag">MFCS Project</span>
+          <span class="tag">Graph Coloring</span>
+          <span class="tag">Set Intersection</span>
+        </div>
+      </div>
+      <div class="header-counts">
+        <div class="hcount"><span class="hcount-num" id="hstat-total">—</span><span class="hcount-label">Events</span></div>
+        <div class="hcount"><span class="hcount-num" id="hstat-sched">—</span><span class="hcount-label">Scheduled</span></div>
+        <div class="hcount"><span class="hcount-num" id="hstat-unsched">—</span><span class="hcount-label">Pending</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <button class="btn-outline" id="btn-samples">Load Sample Events</button>
+    <div class="tool-sep"></div>
+    <button class="btn-primary" id="btn-schedule">Create Schedule</button>
+    <button class="btn-outline" id="btn-conflicts">Show Conflicts</button>
+    <button class="btn-outline" id="btn-priority">Priority Ranking</button>
+    <div class="tool-sep"></div>
+    <button class="btn-outline" id="btn-validate">Check Schedule</button>
+    <button class="btn-outline" id="btn-analytics">Analytics</button>
+    <a class="btn btn-outline" href="/api/export" download="event_timetable.csv">Download CSV</a>
+    <div class="buffer-wrap">
+      <label for="buffer-select" style="font-weight:600;white-space:nowrap">Venue buffer</label>
+      <select id="buffer-select">
+        <option value="30" selected>30 min</option>
+        <option value="25">25 min</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="notice" class="notice">Ready — load sample events or add one below.</div>
+
+  <!-- RESULT PANEL -->
+  <div id="result-panel" class="card result-panel hidden fadein">
+    <div class="card-header">
+      <h2 class="card-title" id="result-title">Result</h2>
+      <button class="btn-ghost" id="btn-close-result" title="Close">✕</button>
+    </div>
+    <div id="result-body"></div>
+  </div>
+
+  <!-- ADD EVENT + INFO COLUMNS -->
+  <div class="two-col">
+
+    <!-- Add Event form -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Add Event</h2>
+        <span class="pill pill-blue" style="font-size:.72rem">ID auto-generated</span>
+      </div>
+      <p class="hint">Leave start/end time blank to let the auto-scheduler assign a slot.</p>
+      <form id="add-form">
+        <label class="span2">Event Name <input name="event_name" placeholder="Robotics Workshop" required></label>
+        <label>Date <input name="date" type="date" value="2026-12-05" required></label>
+        <label>Venue <input name="venue" placeholder="Lab 1" required></label>
+        <label>Start Time <span class="opt">(optional)</span><input name="start_time" type="time" step="1800"></label>
+        <label>End Time <span class="opt">(optional)</span><input name="end_time" type="time" step="1800"></label>
+        <label class="span2">Participant IDs <span class="opt">comma-separated, e.g. S101, S102</span><input name="participants" placeholder="S101, S102, S103"></label>
+        <div id="add-clash-alert" class="clash-alert hidden"></div>
+        <button type="submit" class="btn-primary span2">Add Event</button>
+      </form>
+    </div>
+
+    <!-- MFCS info panel -->
+    <div class="card info-card">
+      <div class="card-header">
+        <h2 class="card-title" style="color:var(--blue-dark)">How It Works</h2>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">Graph Coloring (Primary)</div>
+        <div class="info-text">Events are <strong>vertices</strong>. Events sharing students get an <strong>edge</strong>. Each time slot is a <strong>color</strong>. The scheduler assigns different slots to connected events — a valid graph coloring.</div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">Set Intersection (Supporting)</div>
+        <div class="info-text"><strong>P(A) ∩ P(B)</strong> — if two events share participant IDs, they form an edge. A <em>clash</em> happens only when they also overlap in time.</div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">Conflict-degree Heuristic</div>
+        <div class="info-text">Events with more graph edges are assigned first — they have fewer free slot choices. This is a <em>scheduling difficulty</em> measure, not importance.</div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">Venue Buffer</div>
+        <div class="info-text">A venue is locked from session start until end <strong>+ buffer</strong> (25 or 30 min). Prevents back-to-back bookings without reset time.</div>
+      </div>
+    </div>
+
+  </div><!-- /two-col -->
+
+  <!-- EVENT TABLE -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Event Timetable</h2>
+      <span id="event-count" class="pill pill-blue">0 events</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Venue</th>
+            <th>Window</th>
+            <th>Participants</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="event-list"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+</main>
+
+<!-- EDIT MODAL -->
+<div id="edit-modal" class="modal-backdrop hidden">
+  <div class="modal-box fadein">
+    <div class="card-header">
+      <h2 class="card-title">Edit Event</h2>
+      <button class="btn-ghost" id="btn-close-edit">✕</button>
+    </div>
+    <form id="edit-form">
+      <input type="hidden" name="event_id" id="e-id">
+      <label>Event Name<input name="event_name" id="e-name" required></label>
+      <label>Date<input name="date" type="date" id="e-date" required></label>
+      <label>Venue<input name="venue" id="e-venue" required></label>
+      <label>Preferred Window <span class="opt">e.g. 09:00-14:00</span><input name="preferred_window" id="e-window"></label>
+      <label>Start Time <span class="opt">HH:MM or empty</span><input name="start_time" type="time" id="e-start"></label>
+      <label>End Time <span class="opt">HH:MM or empty</span><input name="end_time" type="time" id="e-end"></label>
+      <label class="span2">Participants <span class="opt">comma-separated</span><input name="participants" id="e-parts"></label>
+      <label class="span2">Description<textarea name="description" id="e-desc" rows="2"></textarea></label>
+      <div id="edit-warn" class="warning-box hidden"></div>
+      <div class="modal-actions span2">
+        <button type="button" class="btn-outline" id="btn-cancel-edit">Cancel</button>
+        <button type="submit" class="btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<footer>Smart College Event Planning Assistant · MFCS Project · Graph Coloring &amp; Set Intersection · Python Standard Library</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
